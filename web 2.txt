@@ -1,0 +1,131 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - F. General Tech</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Background -->
+    <video autoplay muted loop playsinline id="bgVideo">
+        <source src="https://cdn.pixabay.com/video/2023/06/15/168128-838265292_large.mp4" type="video/mp4">
+    </video>
+    <div class="video-overlay"></div>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='55' fill='%23C9A84C'/%3E%3Ccircle cx='60' cy='60' r='45' fill='%231a1a2e'/%3E%3Ctext x='60' y='55' font-family='Arial' font-size='20' font-weight='bold' fill='%23C9A84C' text-anchor='middle'%3EF.G%3C/text%3E%3Ctext x='60' y='80' font-family='Arial' font-size='12' fill='%23C9A84C' text-anchor='middle'%3ETECH%3C/text%3E%3C/svg%3E" alt="Logo">
+                <span>F. General Tech</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="active" onclick="showSection('products')"><i class="fas fa-box"></i> Products</a>
+                <a href="#" onclick="showSection('add-product')"><i class="fas fa-plus-circle"></i> Add Product</a>
+                <a href="#" onclick="showSection('orders')"><i class="fas fa-shopping-cart"></i> Orders</a>
+                <a href="#" onclick="showSection('settings')"><i class="fas fa-cog"></i> Settings</a>
+            </nav>
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="userNameDisplay">User</span>
+                </div>
+                <button onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="dashboard-main">
+            <div class="dashboard-header">
+                <h1>📱 Product Management</h1>
+                <p>Manage your devices and inventory</p>
+            </div>
+
+            <!-- Products Section -->
+            <div id="products-section" class="dashboard-section active">
+                <div class="section-header">
+                    <h2>Your Products</h2>
+                    <button onclick="showSection('add-product')" class="btn-primary"><i class="fas fa-plus"></i> Add New</button>
+                </div>
+                <div class="product-grid" id="productGrid">
+                    <!-- Products will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Add Product Section -->
+            <div id="add-product-section" class="dashboard-section">
+                <div class="section-header">
+                    <h2>Add New Product</h2>
+                </div>
+                <form id="addProductForm" class="product-form">
+                    <div class="form-group">
+                        <label>Product Name *</label>
+                        <input type="text" id="prodName" placeholder="e.g., iPhone 12 Screen" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="prodCategory">
+                            <option value="Phone">Phone</option>
+                            <option value="Accessory">Accessory</option>
+                            <option value="Battery">Battery</option>
+                            <option value="Screen">Screen</option>
+                            <option value="Charger">Charger</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Price (₦)</label>
+                        <input type="number" id="prodPrice" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="prodDesc" placeholder="Brief description..." rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="prodStatus">
+                            <option value="available">Available</option>
+                            <option value="sold">Sold</option>
+                            <option value="unavailable">Not Available</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Product</button>
+                </form>
+            </div>
+
+            <!-- AI Assistant -->
+            <div class="ai-assistant" id="aiAssistant">
+                <button class="ai-toggle" onclick="toggleAI()">
+                    <i class="fas fa-robot"></i>
+                    <span class="ai-badge">AI</span>
+                </button>
+                <div class="ai-chat" id="aiChat" style="display:none;">
+                    <div class="ai-header">
+                        <i class="fas fa-robot"></i>
+                        <span>F. General AI Assistant</span>
+                        <button onclick="toggleAI()" class="close-ai"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="ai-messages" id="aiMessages">
+                        <div class="ai-msg">
+                            <span class="ai-icon"><i class="fas fa-robot"></i></span>
+                            <div class="msg-bubble">👋 Welcome! I'm your assistant. Ask me anything about products, repairs, or help!</div>
+                        </div>
+                    </div>
+                    <div class="ai-input">
+                        <input type="text" id="aiInput" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter') sendAIMessage()">
+                        <button onclick="sendAIMessage()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+```

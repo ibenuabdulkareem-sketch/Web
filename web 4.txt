@@ -1,0 +1,316 @@
+```javascript
+// ============================================
+// F. GENERAL TECH - COMPLETE FUNCTIONALITY
+// ============================================
+
+// ===== STORAGE =====
+let products = JSON.parse(localStorage.getItem('fgeneral_products')) || [];
+let currentUser = JSON.parse(sessionStorage.getItem('fgeneral_user')) || null;
+
+// ===== DOM REFS =====
+const loginForm = document.getElementById('loginForm');
+const signupForm = document.getElementById('signupForm');
+
+// ===== LOGIN =====
+loginForm?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+        showAIMessage('Please fill in all fields.', 'error');
+        return;
+    }
+
+    // Check if user exists
+    const users = JSON.parse(localStorage.getItem('fgeneral_users')) || [];
+    const user = users.find(u => 
+        (u.email === email || u.phone === email) && u.password === password
+    );
+
+    if (user) {
+        sessionStorage.setItem('fgeneral_user', JSON.stringify(user));
+        window.location.href = 'dashboard.html';
+    } else {
+        showAIMessage('❌ Invalid credentials. Please check your email/phone and password.');
+    }
+});
+
+// ===== SIGNUP =====
+signupForm?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+
+    if (!name || !email || password.length < 6) {
+        showAIMessage('⚠️ Name, email/phone, and password (min 6 chars) required.');
+        return;
+    }
+
+    const users = JSON.parse(localStorage.getItem('fgeneral_users')) || [];
+    if (users.find(u => u.email === email || u.phone === email)) {
+        showAIMessage('⚠️ Account already exists. Please login.');
+        return;
+    }
+
+    const newUser = { name, email, password, phone: email };
+    users.push(newUser);
+    localStorage.setItem('fgeneral_users', JSON.stringify(users));
+    sessionStorage.setItem('fgeneral_user', JSON.stringify(newUser));
+    showAIMessage('✅ Account created! Welcome to F. General Tech!');
+    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+});
+
+// ===== TOGGLE LOGIN/SIGNUP =====
+function showSignup() {
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'block';
+}
+function showLogin() {
+    loginForm.style.display = 'block';
+    signupForm.style.display = 'none';
+}
+
+// ===== TOGGLE PASSWORD =====
+function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+// ===== LOGOUT =====
+function logout() {
+    sessionStorage.removeItem('fgeneral_user');
+    window.location.href = 'index.html';
+}
+
+// ===== DASHBOARD - LOAD PRODUCTS =====
+function loadProducts() {
+    const grid = document.getElementById('productGrid');
+    if (!grid) return;
+
+    if (products.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-muted);">
+                <i class="fas fa-box" style="font-size:3rem; margin-bottom:15px; color:var(--gold);"></i>
+                <p style="font-size:1.2rem;">No products yet.</p>
+                <p>Click "Add New" to list your first device!</p>
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = products.map((p, i) => `
+        <div class="product-card">
+            <div class="product-name">${p.name}</div>
+            <span class="product-category">${p.category || 'Other'}</span>
+            <div class="product-price">₦${p.price || '0'}</div>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin:6px 0;">${p.desc || 'No description'}</p>
+            <span class="product-status status-${p.status || 'available'}">${(p.status || 'Available').toUpperCase()}</span>
+            <div class="product-actions">
+                <button class="btn-status" onclick="toggleStatus(${i})">
+                    <i class="fas fa-sync"></i> Toggle Status
+                </button>
+                <button class="btn-delete" onclick="deleteProduct(${i})">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ===== ADD PRODUCT =====
+document.getElementById('addProductForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('prodName').value.trim();
+    const category = document.getElementById('prodCategory').value;
+    const price = document.getElementById('prodPrice').value;
+    const desc = document.getElementById('prodDesc').value.trim();
+    const status = document.getElementById('prodStatus').value;
+
+    if (!name) {
+        showAIMessage('⚠️ Product name is required!');
+        return;
+    }
+
+    products.push({ 
+        id: Date.now(), 
+        name, 
+        category, 
+        price: price || '0', 
+        desc: desc || 'No description', 
+        status 
+    });
+    localStorage.setItem('fgeneral_products', JSON.stringify(products));
+    this.reset();
+    showAIMessage('✅ Product added successfully!');
+    loadProducts();
+    showSection('products');
+});
+
+// ===== TOGGLE STATUS =====
+function toggleStatus(index) {
+    const p = products[index];
+    const statuses = ['available', 'sold', 'unavailable'];
+    let current = statuses.indexOf(p.status || 'available');
+    p.status = statuses[(current + 1) % statuses.length];
+    localStorage.setItem('fgeneral_products', JSON.stringify(products));
+    loadProducts();
+    showAIMessage(`📦 "${p.name}" status changed to ${p.status.toUpperCase()}`);
+}
+
+// ===== DELETE PRODUCT =====
+function deleteProduct(index) {
+    if (confirm(`Delete "${products[index].name}"?`)) {
+        products.splice(index, 1);
+        localStorage.setItem('fgeneral_products', JSON.stringify(products));
+        loadProducts();
+        showAIMessage('🗑️ Product deleted.');
+    }
+}
+
+// ===== SHOW SECTION =====
+function showSection(section) {
+    document.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(section + '-section');
+    if (target) target.classList.add('active');
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    event?.target?.classList.add('active');
+}
+
+// ============================================
+// ===== AI ASSISTANT =====
+// ============================================
+
+function toggleAI() {
+    const chat = document.getElementById('aiChat');
+    if (chat) chat.style.display = chat.style.display === 'none' ? 'flex' : 'none';
+}
+
+function sendAIMessage() {
+    const input = document.getElementById('aiInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    showAIMessage(msg, 'user');
+    processAI(msg);
+}
+
+function showAIMessage(msg, type = 'ai') {
+    const container = document.getElementById('aiMessages');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = `ai-msg ${type === 'user' ? 'user-msg' : ''}`;
+    
+    if (type === 'ai') {
+        div.innerHTML = `
+            <span class="ai-icon"><i class="fas fa-robot"></i></span>
+            <div class="msg-bubble">${msg}</div>
+        `;
+    } else {
+        div.innerHTML = `
+            <div class="msg-bubble" style="margin-left:auto; background:rgba(201,168,76,0.15);">
+                ${msg}
+            </div>
+        `;
+    }
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function processAI(query) {
+    const q = query.toLowerCase();
+    let reply = '';
+
+    // ===== KNOWLEDGE BASE =====
+    if (q.includes('hello') || q.includes('hi') || q.includes('hey')) {
+        reply = '👋 Hello! Welcome to F. General Tech. How can I help you today?';
+    }
+    else if (q.includes('service') || q.includes('repair') || q.includes('fix')) {
+        reply = `🔧 We offer:
+• Phone & Smartphone Repair
+• Hardware Diagnosis & Repair
+• Software Troubleshooting
+• Battery & Charging Solutions
+• Screen & Component Replacement
+• Technology Consultation
+
+Visit our location at Kaduna Efekpe, Anyigba, or call 0915 795 7193!`;
+    }
+    else if (q.includes('price') || q.includes('cost') || q.includes('how much')) {
+        reply = '💰 Pricing depends on the device and issue. For an accurate quote, please visit our location or call 0915 795 7193. We offer fair and competitive rates!';
+    }
+    else if (q.includes('location') || q.includes('address') || q.includes('where')) {
+        reply = '📍 We\'re located at: Besides Sunday Peter Church, Kaduna Efekpe, Anyigba, Kogi State, Nigeria. Come visit us!';
+    }
+    else if (q.includes('phone') || q.includes('contact') || q.includes('call')) {
+        reply = '📞 You can reach us at: 0915 795 7193 or email: ibenuabdulkareem@gmail.com';
+    }
+    else if (q.includes('product') || q.includes('stock') || q.includes('available')) {
+        const avail = products.filter(p => p.status === 'available');
+        if (avail.length === 0) {
+            reply = '📦 We don\'t have any products listed as available right now. Check back later!';
+        } else {
+            reply = `📱 Available products:\n${avail.map(p => `• ${p.name} - ₦${p.price}`).join('\n')}`;
+        }
+    }
+    else if (q.includes('login') || q.includes('sign in') || q.includes('password')) {
+        reply = '🔐 Having login issues? Try resetting your password or contact us at 0915 795 7193 for assistance.';
+    }
+    else if (q.includes('signup') || q.includes('create account')) {
+        reply = '📝 To create an account, click the "Sign Up" link on the login page. Enter your name, email/phone, and password (min 6 characters).';
+    }
+    else if (q.includes('mission') || q.includes('vision') || q.includes('about')) {
+        reply = `🎯 Our Mission: To deliver reliable, professional, and affordable technology solutions while maintaining high standards of workmanship.
+
+🌟 Our Vision: To become a trusted and innovative technology brand recognized for professional repairs and creative problem-solving.`;
+    }
+    else if (q.includes('freeman') || q.includes('abdulkareem') || q.includes('founder')) {
+        reply = '👨‍💻 F. General Tech was founded by Ibenu Abdulkareem (Freeman General). He\'s a technology specialist passionate about repair, innovation, and creating solutions. "Son of Grace can never be a disgrace!" 💪';
+    }
+    else if (q.includes('help') || q.includes('stuck') || q.includes('confused')) {
+        reply = `🆘 I'm here to help! You can ask me about:
+• Our services and repairs
+• Pricing and quotes
+• Location and contact info
+• Products and stock
+• Login/signup assistance
+• Our mission and founder
+
+Or just tell me what you're trying to do!`;
+    }
+    else if (q.includes('thanks') || q.includes('thank you')) {
+        reply = '🙌 You\'re welcome! We\'re here to serve you. Remember: CRACK THE PROBLEM. CREATE THE SOLUTION. 💪';
+    }
+    else {
+        reply = `🤔 Great question! Let me connect you with the right info.
+
+For specific inquiries about repairs, products, or services, please:
+📞 Call: 0915 795 7193
+📧 Email: ibenuabdulkareem@gmail.com
+📍 Visit: Kaduna Efekpe, Anyigba
+
+Or I can guide you if you tell me more about what you need! 😊`;
+    }
+
+    setTimeout(() => showAIMessage(reply), 500);
+}
+
+// ===== DASHBOARD USER NAME =====
+if (currentUser) {
+    document.getElementById('userNameDisplay').textContent = currentUser.name || 'User';
+}
+
+// ===== LOAD PRODUCTS ON DASHBOARD =====
+if (document.getElementById('productGrid')) {
+    loadProducts();
+}
+
+// ===== AUTO-AI ON LOAD =====
+setTimeout(() => {
+    if (document.getElementById('aiMessages')) {
+        showAIMessage('💡 Tip: You can ask me anything about repairs, products, or if you\'re stuck!');
+    }
+}, 3000);
+```
